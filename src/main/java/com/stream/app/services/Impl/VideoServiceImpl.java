@@ -26,6 +26,9 @@ public class VideoServiceImpl implements VideoService {
     @Value("${files.video}")
     String DIR;
 
+    @Value("${file.video.hsl}")
+    String HSL_DIR;
+
     private VideoRepository videoRepository;
 
     public VideoServiceImpl(VideoRepository videoRepository) {
@@ -35,6 +38,13 @@ public class VideoServiceImpl implements VideoService {
     @PostConstruct
     public void init() {
         File file = new File(DIR);
+
+        try {
+            Files.createDirectories(Paths.get(HSL_DIR));
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+
         if(!file.exists()) {
             file.mkdir();
             System.out.println("Folder created");
@@ -62,6 +72,7 @@ public class VideoServiceImpl implements VideoService {
             video.setContentType(contentType);
             video.setFilePath(path.toString());
 
+            processVideo(video.getVideoId());
             return videoRepository.save(video);
 
         } catch (IOException e) {
@@ -87,4 +98,48 @@ public class VideoServiceImpl implements VideoService {
     public List<Video> getAll() {
         return videoRepository.findAll();
     }
+
+    @Override
+    public String processVideo(String videoId) {
+        Video video = this.get(videoId);
+        String filePath = video.getFilePath();
+
+        Path videoPath = Paths.get(filePath);
+//        String output360p = HSL_DIR+videoId+"/360p";
+//        String output720p = HSL_DIR+videoId+"/720p";
+//        String output1080p = HSL_DIR+videoId+"/1080p";
+
+
+        try {
+//            Files.createDirectories(Paths.get(output360p));
+//            Files.createDirectories(Paths.get(output720p));
+//            Files.createDirectories(Paths.get(output1080p));
+
+            Path outputPath = Paths.get(HSL_DIR, videoId);
+            Files.createDirectories(outputPath);
+
+            String ffmpegCmd = String.format(
+                    "ffmpeg -i \"%s\" -c:v libx264 -c:a aac -strict -2 -f hls -hls_time 10 -hls_list_size 0 -hls_segment_filename \"%s/segment_%%3d.ts\"  \"%s/master.m3u8\" ",
+                    videoPath, outputPath, outputPath
+            );
+
+            System.out.println(ffmpegCmd);
+            ProcessBuilder processBuilder = new ProcessBuilder("/bin/bash", "-c", ffmpegCmd);
+            processBuilder.inheritIO();
+            Process process = processBuilder.start();
+            int exit = process.waitFor();
+            if (exit != 0) {
+                throw new RuntimeException("video processing failed!!");
+            }
+
+            return videoId;
+        } catch (IOException e) {
+            throw new RuntimeException("Video processing Failed", e);
+        } catch (InterruptedException e) {
+            throw new RuntimeException(e);
+        }
+
+
+    }
+
 }

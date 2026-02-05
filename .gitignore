@@ -31,3 +31,13 @@ build/
 
 ### VS Code ###
 .vscode/
+
+.DS_Store
+
+videos
+# videos_hsl
+
+
+
+
+
