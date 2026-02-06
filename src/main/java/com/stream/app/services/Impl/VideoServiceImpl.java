@@ -9,6 +9,7 @@ import org.springframework.aop.scope.ScopedProxyUtils;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
+import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.File;
@@ -71,16 +72,23 @@ public class VideoServiceImpl implements VideoService {
 
             video.setContentType(contentType);
             video.setFilePath(path.toString());
+            videoRepository.save(video);
 
-            processVideo(video.getVideoId());
-            return videoRepository.save(video);
+            try {
+                processVideo(video.getVideoId());
+                return video;
+
+            } catch (Exception e) {
+                videoRepository.delete(video);
+                System.out.println("Error in processing video");
+                System.out.println(e);
+            }
 
         } catch (IOException e) {
             e.printStackTrace();
             return null;
         }
-
-
+        return null;
     }
 
     @Override
@@ -99,6 +107,7 @@ public class VideoServiceImpl implements VideoService {
         return videoRepository.findAll();
     }
 
+    @CrossOrigin("*")
     @Override
     public String processVideo(String videoId) {
         Video video = this.get(videoId);

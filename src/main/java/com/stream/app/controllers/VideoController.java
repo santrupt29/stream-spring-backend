@@ -4,6 +4,8 @@ import com.stream.app.AppConstants;
 import com.stream.app.entities.Video;
 import com.stream.app.payload.CustomMessage;
 import com.stream.app.services.VideoService;
+import org.apache.coyote.Response;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.io.ByteArrayResource;
 import org.springframework.core.io.FileSystemResource;
 import org.springframework.core.io.InputStreamResource;
@@ -160,6 +162,48 @@ public class VideoController {
     }
 
     // Video Transcoding
+    // Serve HLS playlist
+
+    @Value("${file.video.hsl}")
+    private String HSL_DIR;
+    // master.m2u8 file
+    @GetMapping("/{videoId}/master.m3u8")
+    public ResponseEntity<Resource> serveMasterFile(@PathVariable String videoId) {
+
+        Path path = Paths.get(HSL_DIR, videoId, "master.m3u8");
+        System.out.println(path);
+
+        if(!Files.exists(path)) {
+            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+        }
+
+        Resource resource = new FileSystemResource(path);
+
+        return ResponseEntity
+                .ok()
+                .header(
+                        HttpHeaders.CONTENT_TYPE, "application/vnd.apple.mpegurl"
+                ).body(resource);
+
+    }
+
+    @GetMapping("/{videoId}/{segment}.ts")
+    public ResponseEntity<Resource> serveSegments(
+            @PathVariable String videoId,
+            @PathVariable String segment
+    ) {
+        Path path = Paths.get(HSL_DIR, videoId, segment+".ts");
+        if(!Files.exists(path)) {
+            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+        }
+
+        Resource resource = new FileSystemResource(path);
+        return ResponseEntity
+                .ok()
+                .header(
+                        HttpHeaders.CONTENT_TYPE, "video/mp2t"
+                ).body(resource);
+    }
 
 }
 
