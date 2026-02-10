@@ -1,5 +1,6 @@
 package com.stream.app.entities;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import jakarta.persistence.*;
 import lombok.*;
 import org.hibernate.annotations.CreationTimestamp;
@@ -29,5 +30,6 @@ public class Video {
                                        // fetching the entire User object unless
                                        // explicitly called getVideo().getUser().
     @JoinColumn(name = "user_id")
+    @JsonIgnoreProperties({"hibernateLazyInitializer", "handler"})
     private Users user;
 }

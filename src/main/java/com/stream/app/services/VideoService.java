@@ -7,6 +7,7 @@ import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.UUID;
 
 public interface VideoService {
 
@@ -20,4 +21,6 @@ public interface VideoService {
 
     // Video processing
     String processVideo(String videoId);
+
+    List<Video> getVideosByUser(UUID userId);
 }

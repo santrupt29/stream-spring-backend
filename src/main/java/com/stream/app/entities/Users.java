@@ -1,5 +1,6 @@
 package com.stream.app.entities;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.*;
 import org.hibernate.annotations.CreationTimestamp;
@@ -30,6 +31,7 @@ public class Users implements UserDetails {
     @Column(nullable = false, updatable = false)
     private Instant createdAt;
     @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
+    @JsonIgnore
     private List<Video> videos = new ArrayList<>();
 
     @Override

@@ -1,6 +1,7 @@
 package com.stream.app.controllers;
 
 import com.stream.app.AppConstants;
+import com.stream.app.entities.Users;
 import com.stream.app.entities.Video;
 import com.stream.app.payload.CustomMessage;
 import com.stream.app.services.VideoService;
@@ -14,6 +15,7 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 import org.w3c.dom.ranges.RangeException;
@@ -44,12 +46,15 @@ public class VideoController {
     public ResponseEntity<?> create(
             @RequestParam("file")MultipartFile file,
             @RequestParam("title") String title,
-            @RequestParam("description") String description) {
+            @RequestParam("description") String description,
+            Authentication authentication) {
 
+        Users currentUser = (Users) authentication.getPrincipal();
         Video video = new Video();
         video.setTitle(title);
         video.setDescription(description);
         video.setVideoId(UUID.randomUUID().toString());
+        video.setUser(currentUser);
         String contentType = file.getContentType();
         if(contentType == null || !contentType.startsWith("video/")) {
             return ResponseEntity
@@ -203,6 +208,13 @@ public class VideoController {
                 .header(
                         HttpHeaders.CONTENT_TYPE, "video/mp2t"
                 ).body(resource);
+    }
+
+    @GetMapping("/my-videos")
+    public ResponseEntity<List<Video>> getVideosPerUser(Authentication authentication) {
+        Users currentUser = (Users) authentication.getPrincipal();
+        List<Video> videos = videoService.getVideosByUser(currentUser.getId());
+        return ResponseEntity.ok(videos);
     }
 
 }
