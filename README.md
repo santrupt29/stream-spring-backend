@@ -1,6 +1,11 @@
 # 🌀 Vortex - Video Streaming Backend
 
 The **Vortex Backend** is a robust Spring Boot application designed to power a modern video streaming platform. It handles video uploads, processing (transcoding to HLS), and streaming, leveraging AWS S3 (via DigitalOcean Spaces) for storage and PostgreSQL for metadata management.
+Frontend Repo - 
+
+## 🔗 Repository Links
+* **Backend:** [github.com/santrupt29/stream-spring-backend](https://github.com/santrupt29/stream-spring-backend)
+* **Frontend:** [github.com/santrupt29/vortex-frontend](https://github.com/santrupt29/stream-frontend)
 
 ## 🚀 Key Features
 
