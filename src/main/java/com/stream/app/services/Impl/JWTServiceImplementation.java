@@ -5,13 +5,11 @@ import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.io.Decoders;
 import io.jsonwebtoken.security.Keys;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Service;
 
-import javax.crypto.KeyGenerator;
 import javax.crypto.SecretKey;
-import java.security.NoSuchAlgorithmException;
-import java.util.Base64;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
@@ -20,17 +18,16 @@ import java.util.function.Function;
 @Service
 public class JWTServiceImplementation implements JWTService {
 
-    private String secretKey = "";
+    /**
+     * Loaded from application.properties / environment variable.
+     * This key is STABLE across restarts, so tokens survive redeployments.
+     */
+    @Value("${jwt.secret}")
+    private String secretKey;
 
-    public JWTServiceImplementation() {
-        try {
-            KeyGenerator keyGen = KeyGenerator.getInstance("HmacSHA256");
-            SecretKey sk = keyGen.generateKey();
-            secretKey = Base64.getEncoder().encodeToString(sk.getEncoded());
-        } catch (NoSuchAlgorithmException e) {
-            throw new RuntimeException(e);
-        }
-    }
+    /** Token validity: 7 days in milliseconds */
+    private static final long TOKEN_VALIDITY_MS = 7L * 24 * 60 * 60 * 1000;
+
     @Override
     public String generateToken(String email) {
         Map<String, Object> claims = new HashMap<>();
@@ -40,7 +37,7 @@ public class JWTServiceImplementation implements JWTService {
                 .add(claims)
                 .subject(email)
                 .issuedAt(new Date(System.currentTimeMillis()))
-                .expiration(new Date(System.currentTimeMillis()+60*60*30*30))
+                .expiration(new Date(System.currentTimeMillis() + TOKEN_VALIDITY_MS))
                 .and()
                 .signWith(getKey())
                 .compact();
@@ -83,4 +80,3 @@ public class JWTServiceImplementation implements JWTService {
         return extractClaim(token, Claims::getExpiration);
     }
 }
-

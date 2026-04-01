@@ -21,6 +21,10 @@ public class Video {
     private String description;
     private String contentType;
     private String filePath;
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false)
+    @Builder.Default
+    private VideoStatus status = VideoStatus.UPLOADING;
     @CreationTimestamp
     @Column(nullable = false, updatable = false)
     private Instant uploadedAt;
